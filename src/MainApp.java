@@ -8,5 +8,7 @@ public class MainApp {
         System.out.println("\nOperacionesIO.recorrerRecursivo");
         OperacionesIO.recorrerRecursivo("P:\\AccesoDatos\\Directorios","-",1);
 
+        System.out.println("Final de programa");
+
     }
 }
