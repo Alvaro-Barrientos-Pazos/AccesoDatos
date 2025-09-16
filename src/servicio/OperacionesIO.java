@@ -1,98 +1,114 @@
 package servicio;
 
+import excepciones.DirectorioNoExisteExcepcion;
+import excepciones.NoEsDirectorioException;
+
 import java.io.File;
+import java.io.FilenameFilter;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 public class OperacionesIO {
 
 
-    public static void visualizarContenido(String path){
+    public static void visualizarContenido(String path) throws NoEsDirectorioException, DirectorioNoExisteExcepcion {
         File file = new File(path);
 
         System.out.println("--- LISTANDO EL DIRECTORIO "+path.toUpperCase());
 
-        if (!file.exists()){
-            System.out.println("Error: La ruta especificada no existe");
-            return;
-        }
-
-        if (!file.isDirectory()){
-            System.out.println("Error: La ruta no es un directorio.");
-            return;
-        }
+        Utilidades.validarDirectorio(file);
 
         System.out.println();
 
         String type = null;
         String size = null;
 
+
         for (File f : file.listFiles()){
             type = f.isDirectory() ? "<DIR>" : "<FICHERO>";
-            size = f.isDirectory() ? "-" : humanizeFileSize(f.length());
+            size = f.isDirectory() ? "-" : Utilidades.humanizeFileSize(f.length());
 
             System.out.printf( "-|%-22s %-10s %-10s %s\n",
-                f.getName(), type, size, new Date(f.lastModified())
+                f.getName(), type, size, Utilidades.formatMiliDate(f.lastModified())
             );
         }
     }
 
-    private static String humanizeFileSize(long size){
 
-        if (size <= 0) return "0 Bytes";
-
-        String msg = null;
-
-        final float KILOBYTES = 1024;
-        final float MEGABYTES = 1024*1024;
-        final float GIGABYTES = MEGABYTES*1024;
-
-        if (size >= GIGABYTES){
-            msg = String.format("%.2f GiB", size / GIGABYTES);
-        }
-        else if (size >= MEGABYTES) {
-            msg = String.format("%.2f MiB", size / MEGABYTES);
-        }
-        else if (size >= KILOBYTES){
-            msg = String.format("%.2f KiB", size / KILOBYTES);
-        }
-        else {
-            msg = String.format("%d Bytes", size);
-        }
-
-        return msg;
-    }
-
-
-    public static void recorrerRecursivo(String path, String preffix, int depth){
+    public static void visualizarContenidoFiltrado(String path, FilenameFilter filtro) throws NoEsDirectorioException, DirectorioNoExisteExcepcion {
         File file = new File(path);
 
-        if (!file.exists()){
-            System.out.println("Error: La ruta especificada no existe");
-            return;
-        }
+        System.out.println("--- LISTANDO EL DIRECTORIO "+path.toUpperCase());
 
-        if (!file.isDirectory()){
-            System.out.println("Error: La ruta no es un directorio.");
-            return;
-        }
+        Utilidades.validarDirectorio(file);
 
+        System.out.println();
 
         String type = null;
         String size = null;
 
-        for (File f : file.listFiles()){
+        for (File f : file.listFiles(filtro)){
             type = f.isDirectory() ? "<DIR>" : "<FICHERO>";
-            size = f.isDirectory() ? "" : humanizeFileSize(f.length());
+            size = f.isDirectory() ? "-" : Utilidades.humanizeFileSize(f.length());
+
+            System.out.printf( "-|%-22s %-10s %-10s %s\n",
+                    f.getName(), type, size, Utilidades.formatMiliDate(f.lastModified())
+            );
+        }
+    }
+
+
+    public static void recorrerRecursivo(String path) throws DirectorioNoExisteExcepcion, NoEsDirectorioException {
+        File dir = new File(path);
+        Utilidades.validarDirectorio(dir);
+        recorrerRecursivo(dir, "-", 0);
+    }
+
+    public static void recorrerRecursivo(String path, FilenameFilter filter) throws DirectorioNoExisteExcepcion, NoEsDirectorioException {
+        File dir = new File(path);
+        Utilidades.validarDirectorio(dir);
+        recorrerRecursivo(dir, "-", 0, filter);
+    }
+
+
+    public static void recorrerRecursivo(File dir, String preffix, int depth) throws DirectorioNoExisteExcepcion, NoEsDirectorioException {
+        String type = null;
+        String size = null;
+
+        for (File f : dir.listFiles()){
+            type = f.isDirectory() ? "<DIR>" : "<FICHERO>";
+            size = f.isDirectory() ? "" : Utilidades.humanizeFileSize(f.length());
 
             // Date añade un espacio al comienzo de la string por alguna razon
-            System.out.printf( "%s|%s %s %s%s\n",
-                    preffix.repeat(depth*2),f.getName(), type, size, new Date(f.lastModified())
+            System.out.printf( "%s|%s %s %s%s%n",
+                    preffix.repeat(depth*2),f.getName(), type, size, Utilidades.formatMiliDate(f.lastModified())
             );
 
             if (f.isDirectory()){
-                recorrerRecursivo(f.getPath(), preffix,depth+1);
+                recorrerRecursivo(f, preffix,depth+1);
             }
         }
+    }
 
+
+    public static void recorrerRecursivo(File dir, String preffix, int depth, FilenameFilter filter) throws DirectorioNoExisteExcepcion, NoEsDirectorioException {
+        String type = null;
+        String size = null;
+
+        for (File f : dir.listFiles(filter)){
+            type = f.isDirectory() ? "<DIR>" : "<FICHERO>";
+            size = f.isDirectory() ? "" : Utilidades.humanizeFileSize(f.length());
+
+            // Date añade un espacio al comienzo de la string por alguna razon
+            System.out.printf( "%s|%s %s %s%s%n",
+                    preffix.repeat(depth*2),f.getName(), type, size, Utilidades.formatMiliDate(f.lastModified())
+            );
+
+            if (f.isDirectory()){
+                recorrerRecursivo(f, preffix,depth+1);
+            }
+        }
     }
 }
