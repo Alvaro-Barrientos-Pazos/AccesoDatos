@@ -7,8 +7,8 @@ public class Filtro implements FilenameFilter {
 
     private String ext;
 
-    Filtro(String ext) {
-        this.ext =  ext.startsWith(".") ? ext.toLowerCase() : "."+ext.toLowerCase();
+    public Filtro(String ext) {
+        this.ext = ext;
     }
 
     @Override

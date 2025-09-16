@@ -5,110 +5,160 @@ import excepciones.NoEsDirectorioException;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 
 public class OperacionesIO {
 
 
-    public static void visualizarContenido(String path) throws NoEsDirectorioException, DirectorioNoExisteExcepcion {
-        File file = new File(path);
+    public static void filtrarPorExtension(String path, String ext) throws NoEsDirectorioException, DirectorioNoExisteExcepcion {
+        System.out.println("\n\n-- ARCHIVOS FILTRADOS POR EXTENSION EN DIRECTORIO "+path.toUpperCase());
 
-        System.out.println("--- LISTANDO EL DIRECTORIO "+path.toUpperCase());
+        File dir = new File(path);
+        Utilidades.validarDirectorio(dir);
+        ext = Utilidades.verifyExtension(ext);
 
-        Utilidades.validarDirectorio(file);
+        Filtro filter = new Filtro(ext);
+        File[] files = dir.listFiles(filter);
 
-        System.out.println();
+        if (files.length == 0){
+            System.out.println("No se encontro ningún archivo con la extensión: "+ext);
+            return;
+        }
 
-        String type = null;
-        String size = null;
-
-
-        for (File f : file.listFiles()){
-            type = f.isDirectory() ? "<DIR>" : "<FICHERO>";
-            size = f.isDirectory() ? "-" : Utilidades.humanizeFileSize(f.length());
-
-            System.out.printf( "-|%-22s %-10s %-10s %s\n",
-                f.getName(), type, size, Utilidades.formatMiliDate(f.lastModified())
-            );
+        for (File f : files){
+            Utilidades.mostrarInfo(f,"-");
         }
     }
 
 
-    public static void visualizarContenidoFiltrado(String path, FilenameFilter filtro) throws NoEsDirectorioException, DirectorioNoExisteExcepcion {
-        File file = new File(path);
+    public static void filtrarPorExtensionYOrdenar(String path, String ext, boolean descending) throws NoEsDirectorioException, DirectorioNoExisteExcepcion {
+        System.out.println("\n\n-- ARCHIVOS FILTRADOS POR EXTENSION Y ORDENADO EN DIRECTORIO "+path.toUpperCase());
 
-        System.out.println("--- LISTANDO EL DIRECTORIO "+path.toUpperCase());
+        File dir = new File(path);
+        Utilidades.validarDirectorio(dir);
+        ext = Utilidades.verifyExtension(ext);
 
-        Utilidades.validarDirectorio(file);
+        Filtro filter = new Filtro(ext);
+        ArrayList<File> filesList = getDirectoryTree(dir,filter);
 
-        System.out.println();
+        if (filesList.size() == 0){
+            System.out.println("No se encontro ningún archivo con la extensión: "+ext);
+        }
+        else{
+            Comparator<File> comparator = Comparator.comparing(File::getName);
 
-        String type = null;
-        String size = null;
+            if (descending){
+                comparator = comparator.reversed();
+            }
 
-        for (File f : file.listFiles(filtro)){
-            type = f.isDirectory() ? "<DIR>" : "<FICHERO>";
-            size = f.isDirectory() ? "-" : Utilidades.humanizeFileSize(f.length());
+            filesList.sort(comparator);
 
-            System.out.printf( "-|%-22s %-10s %-10s %s\n",
-                    f.getName(), type, size, Utilidades.formatMiliDate(f.lastModified())
-            );
+            for (File f : filesList){
+                Utilidades.mostrarInfo(f,"-", true);
+            }
+        }
+
+    }
+
+    public static void filtrarPorSubcadena(String path, String substring) throws NoEsDirectorioException, DirectorioNoExisteExcepcion {
+        System.out.println("\n\n-- ARCHIVOS FILTRADOS POR SUBCADENA EN DIRECTORIO "+path.toUpperCase());
+
+        File dir = new File(path);
+        Utilidades.validarDirectorio(dir);
+
+        FiltroSubcadena filter = new FiltroSubcadena(substring);
+        ArrayList<File> filesList = getDirectoryTree(dir,filter);
+
+        if (filesList.size() == 0){
+            System.out.println("No se encontro ningún archivo que contenga la substring: "+substring);
+        }
+        else{
+            for (File f : filesList){
+                Utilidades.mostrarInfo(f,"-", true);
+            }
+        }
+    }
+
+
+    public static void visualizarContenido(String path) throws NoEsDirectorioException, DirectorioNoExisteExcepcion {
+        System.out.println("\n\n-- LISTANDO EL DIRECTORIO "+path.toUpperCase());
+
+        File dir = new File(path);
+        Utilidades.validarDirectorio(dir);
+
+        for (File f : dir.listFiles()){
+            Utilidades.mostrarInfo(f,"-");
+        }
+    }
+
+
+    public static void visualizarContenido(String path, FilenameFilter filter) throws NoEsDirectorioException, DirectorioNoExisteExcepcion {
+        System.out.println("\n\n-- LISTANDO EL DIRECTORIO "+path.toUpperCase());
+
+        File dir = new File(path);
+        Utilidades.validarDirectorio(dir);
+
+        for (File f : dir.listFiles(filter)){
+            Utilidades.mostrarInfo(f,"-");
         }
     }
 
 
     public static void recorrerRecursivo(String path) throws DirectorioNoExisteExcepcion, NoEsDirectorioException {
+        System.out.println("\n\n-- JERARQUÍA DEL DIRECTORIO "+path.toUpperCase());
+
         File dir = new File(path);
         Utilidades.validarDirectorio(dir);
-        recorrerRecursivo(dir, "-", 0);
+        recorrer(dir, "-", 0, null);
     }
+
 
     public static void recorrerRecursivo(String path, FilenameFilter filter) throws DirectorioNoExisteExcepcion, NoEsDirectorioException {
+        System.out.println("\n\n-- JERARQUÍA DEL DIRECTORIO FILTRADA "+path.toUpperCase());
+
         File dir = new File(path);
         Utilidades.validarDirectorio(dir);
-        recorrerRecursivo(dir, "-", 0, filter);
+        recorrer(dir, "-", 0, filter);
     }
 
 
-    public static void recorrerRecursivo(File dir, String preffix, int depth) throws DirectorioNoExisteExcepcion, NoEsDirectorioException {
-        String type = null;
-        String size = null;
+    public static void recorrer(File dir, String preffix, int depth, FilenameFilter filter) throws DirectorioNoExisteExcepcion, NoEsDirectorioException {
 
-        for (File f : dir.listFiles()){
-            type = f.isDirectory() ? "<DIR>" : "<FICHERO>";
-            size = f.isDirectory() ? "" : Utilidades.humanizeFileSize(f.length());
+        if (depth < 0){
+            depth = 0;
+        }
 
-            // Date añade un espacio al comienzo de la string por alguna razon
-            System.out.printf( "%s|%s %s %s%s%n",
-                    preffix.repeat(depth*2),f.getName(), type, size, Utilidades.formatMiliDate(f.lastModified())
-            );
+        File[] files = dir.listFiles();
+
+        for (File f : files){
 
             if (f.isDirectory()){
-                recorrerRecursivo(f, preffix,depth+1);
+                recorrer(f, preffix,depth+1, filter);
+            }
+
+            if (filter == null || filter.accept(dir, f.getName())) {
+                Utilidades.mostrarInfo(f,preffix.repeat(depth*2));
             }
         }
     }
 
+    public static ArrayList<File> getDirectoryTree(File dir, FilenameFilter filter) throws NoEsDirectorioException, DirectorioNoExisteExcepcion {
 
-    public static void recorrerRecursivo(File dir, String preffix, int depth, FilenameFilter filter) throws DirectorioNoExisteExcepcion, NoEsDirectorioException {
-        String type = null;
-        String size = null;
+        File[] files = dir.listFiles();
+        ArrayList<File> fileList = new ArrayList<>();
 
-        for (File f : dir.listFiles(filter)){
-            type = f.isDirectory() ? "<DIR>" : "<FICHERO>";
-            size = f.isDirectory() ? "" : Utilidades.humanizeFileSize(f.length());
-
-            // Date añade un espacio al comienzo de la string por alguna razon
-            System.out.printf( "%s|%s %s %s%s%n",
-                    preffix.repeat(depth*2),f.getName(), type, size, Utilidades.formatMiliDate(f.lastModified())
-            );
-
+        for (File f : files){
             if (f.isDirectory()){
-                recorrerRecursivo(f, preffix,depth+1);
+                fileList.addAll(getDirectoryTree(f,filter));
             }
+            else if( filter.accept(dir,f.getName()) ){
+                fileList.add(f);
+            }
+
         }
+        return fileList;
     }
+
 }

@@ -13,6 +13,6 @@ public class FiltroSubcadena implements FilenameFilter {
 
     @Override
     public boolean accept(File dir, String name) {
-        return name.contains(substring.toLowerCase());
+        return name.toLowerCase().contains(substring.toLowerCase());
     }
 }
