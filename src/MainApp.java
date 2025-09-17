@@ -1,13 +1,39 @@
-import excepciones.DirectorioNoExisteExcepcion;
-import excepciones.NoEsDirectorioException;
+import excepciones.*;
 import servicio.Filtro;
 import servicio.OperacionesIO;
 
-public class MainApp {
-    public static void main(String[] args) throws NoEsDirectorioException, DirectorioNoExisteExcepcion {
+import java.io.IOException;
 
-        //final String ruta = "D:\\abarrpazo\\Github\\AccesoDatos\\Directorios";
-        final String ruta = "P:\\AccesoDatos\\Directorios";
+public class MainApp {
+    public static void main(String[] args) throws NoEsDirectorioException, DirectorioNoExisteException, ArchivoNoExisteException, IOException, NoEsArchivoException, FormatChangedNotSupportedException {
+
+        // Usar rutas relativas con isDirectory puede dar un falso positivo con archivos...
+        //String rutaBase = System.getProperty("user.dir");
+
+        //String rutaBase = "D:\\abarrpazo\\AccesoDatos\\Directorios";
+        String rutaBase = "G:\\DAM\\DAM2\\AccesoDatos\\Directorios";
+
+        //ejercicios_1_to_5(ruta);
+
+
+        // Ejercicio 6
+        final String NOMBRE_ARCHIVO = "aranna_casera_3.jpg";
+        final String RUTA_ORIGEN = rutaBase+"\\"+NOMBRE_ARCHIVO;
+
+        //String rutaDestino = rutaBase+"\\Fotos\\Arañas\\Caseras";             // Sin especificar nombre
+        String rutaDestino = rutaBase+"\\Fotos\\aranna_3.jpg";                  // Cambiando nombre
+        //String rutaDestino = rutaBase+"\\Fotos\\aranna_casera_3.jpag";       // Excepcion de extension
+        OperacionesIO.copiarArchivo(RUTA_ORIGEN, rutaDestino );      // DEBUG: Comentar cuando se vaya a usar con el copiar del ejercicio 7
+
+
+        // Ejercicio 7
+        rutaDestino = rutaBase+"\\Fotos\\Arañas\\Caseras\\Mover";
+        OperacionesIO.moverArchivo(RUTA_ORIGEN, rutaDestino );
+        //OperacionesIO.copiarArchivo(rutaDestino+"\\"+NOMBRE_ARCHIVO, RUTA_ORIGEN );  // DEBUG: copiar el archivo recien creado en su posicion original tras borrarlo
+    }
+
+
+    static void ejercicios_1_to_5(String ruta) throws NoEsDirectorioException, DirectorioNoExisteException {
 
         // Ejercicio 1
         OperacionesIO.visualizarContenido(ruta);
@@ -31,4 +57,5 @@ public class MainApp {
         OperacionesIO.filtrarPorSubcadena(ruta, "arch");
         OperacionesIO.filtrarPorSubcadena(ruta, "zzz");
     }
+
 }

@@ -1,18 +1,15 @@
 package servicio;
 
-import excepciones.DirectorioNoExisteExcepcion;
-import excepciones.NoEsDirectorioException;
+import excepciones.*;
 
-import java.io.File;
-import java.io.FilenameFilter;
+import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 
 public class OperacionesIO {
 
-
-    public static void filtrarPorExtension(String path, String ext) throws NoEsDirectorioException, DirectorioNoExisteExcepcion {
+/*  • Lista solo los archivos que tengan la extensión en el directorio indicado. */
+    public static void filtrarPorExtension(String path, String ext) throws NoEsDirectorioException, DirectorioNoExisteException {
         System.out.println("\n\n-- ARCHIVOS FILTRADOS POR EXTENSION EN DIRECTORIO "+path.toUpperCase());
 
         File dir = new File(path);
@@ -32,8 +29,12 @@ public class OperacionesIO {
         }
     }
 
-
-    public static void filtrarPorExtensionYOrdenar(String path, String ext, boolean descending) throws NoEsDirectorioException, DirectorioNoExisteExcepcion {
+/*  • Lista solo los archivos que tengan la extensión indicada en el directorio especificado y en todos sus subdirectorios(recursivo), ordenados alfabéticamente.
+    ✓ Si descendente es true → orden de Z a A.
+    ✓ Si descendente es false → orden de A a Z.
+    ✓ La ordenación ignora mayúsculas y minúsculas.
+*/
+    public static void filtrarPorExtensionYOrdenar(String path, String ext, boolean descending) throws NoEsDirectorioException, DirectorioNoExisteException {
         System.out.println("\n\n-- ARCHIVOS FILTRADOS POR EXTENSION Y ORDENADO EN DIRECTORIO "+path.toUpperCase());
 
         File dir = new File(path);
@@ -61,8 +62,9 @@ public class OperacionesIO {
         }
 
     }
-
-    public static void filtrarPorSubcadena(String path, String substring) throws NoEsDirectorioException, DirectorioNoExisteExcepcion {
+/*  • Lista todos los archivos cuyo nombre contenga la subcadena indicada, en el directorio especificado y en todos sus subdirectorios (recursivo).
+    • La búsqueda ignora mayúsculas y minúsculas.       */
+    public static void filtrarPorSubcadena(String path, String substring) throws NoEsDirectorioException, DirectorioNoExisteException {
         System.out.println("\n\n-- ARCHIVOS FILTRADOS POR SUBCADENA EN DIRECTORIO "+path.toUpperCase());
 
         File dir = new File(path);
@@ -81,8 +83,12 @@ public class OperacionesIO {
         }
     }
 
-
-    public static void visualizarContenido(String path) throws NoEsDirectorioException, DirectorioNoExisteExcepcion {
+/*  • Lista el contenido de un directorio (solo el nivel actual).
+    • Muestra nombre, tipo (<DIR> o <FICHERO>), tamaño en KB (solo ficheros) y fecha de última modificación.
+    • Los siguientes errores que se puedan producir se controlarán lanzado excepciones propias y son:
+        - Si el parámetro introducido no existe, se visualizará un mensaje de error correspondiente.
+        - Si el parámetro introducido no representa a un directorio, se visualizará un mensaje de error correspondiente.   */
+    public static void visualizarContenido(String path) throws NoEsDirectorioException, DirectorioNoExisteException {
         System.out.println("\n\n-- LISTANDO EL DIRECTORIO "+path.toUpperCase());
 
         File dir = new File(path);
@@ -94,7 +100,7 @@ public class OperacionesIO {
     }
 
 
-    public static void visualizarContenido(String path, FilenameFilter filter) throws NoEsDirectorioException, DirectorioNoExisteExcepcion {
+    public static void visualizarContenido(String path, FilenameFilter filter) throws NoEsDirectorioException, DirectorioNoExisteException {
         System.out.println("\n\n-- LISTANDO EL DIRECTORIO "+path.toUpperCase());
 
         File dir = new File(path);
@@ -105,8 +111,8 @@ public class OperacionesIO {
         }
     }
 
-
-    public static void recorrerRecursivo(String path) throws DirectorioNoExisteExcepcion, NoEsDirectorioException {
+/*  · Lista el contenido de un directorio y todos sus subdirectorios con sangría.   */
+    public static void recorrerRecursivo(String path) throws DirectorioNoExisteException, NoEsDirectorioException {
         System.out.println("\n\n-- JERARQUÍA DEL DIRECTORIO "+path.toUpperCase());
 
         File dir = new File(path);
@@ -115,7 +121,7 @@ public class OperacionesIO {
     }
 
 
-    public static void recorrerRecursivo(String path, FilenameFilter filter) throws DirectorioNoExisteExcepcion, NoEsDirectorioException {
+    public static void recorrerRecursivo(String path, FilenameFilter filter) throws DirectorioNoExisteException, NoEsDirectorioException {
         System.out.println("\n\n-- JERARQUÍA DEL DIRECTORIO FILTRADA "+path.toUpperCase());
 
         File dir = new File(path);
@@ -124,7 +130,7 @@ public class OperacionesIO {
     }
 
 
-    public static void recorrer(File dir, String preffix, int depth, FilenameFilter filter) throws DirectorioNoExisteExcepcion, NoEsDirectorioException {
+    public static void recorrer(File dir, String preffix, int depth, FilenameFilter filter) throws DirectorioNoExisteException, NoEsDirectorioException {
 
         if (depth < 0){
             depth = 0;
@@ -144,7 +150,8 @@ public class OperacionesIO {
         }
     }
 
-    public static ArrayList<File> getDirectoryTree(File dir, FilenameFilter filter) throws NoEsDirectorioException, DirectorioNoExisteExcepcion {
+
+    public static ArrayList<File> getDirectoryTree(File dir, FilenameFilter filter) throws NoEsDirectorioException, DirectorioNoExisteException {
 
         File[] files = dir.listFiles();
         ArrayList<File> fileList = new ArrayList<>();
@@ -159,6 +166,73 @@ public class OperacionesIO {
 
         }
         return fileList;
+    }
+
+
+/*  • Copia un archivo desde una ruta de origen a una ruta de destino.
+    • Si el directorio destino no existe, lo crea.
+    • Si ya existe un archivo con el mismo nombre en destino, lo sobrescribe.       */
+    public static File copiarArchivo(String origen, String destino) throws ArchivoNoExisteException, IOException, NoEsArchivoException, FormatChangedNotSupportedException {
+
+        File sourceFile = new File(origen);
+        Utilidades.validarArchivo(sourceFile);
+
+        String targetPath = Utilidades.resolvePath(sourceFile,destino);
+        File targetFile = new File(targetPath);
+
+        createNestedDirectories( targetFile.getParentFile() );
+        writeFile(sourceFile,targetFile);
+
+        return sourceFile;
+    }
+
+
+/*  • Mueve un archivo desde una ruta de origen a una ruta de destino.
+    • Si el directorio destino no existe, lo crea.
+    • Si ya existe un archivo con el mismo nombre en destino, lo sobrescribe.       */
+    public static void moverArchivo(String origen, String destino) throws ArchivoNoExisteException, NoEsArchivoException, FormatChangedNotSupportedException, IOException {
+
+        File sourceFile = new File(origen);
+
+        if (sourceFile.isDirectory()){
+            System.out.println("No se puede mover directorios");
+            return;
+        }
+
+        sourceFile = copiarArchivo(origen,destino);
+
+        boolean deletionResult = sourceFile.delete();
+
+        if (!deletionResult){
+            System.out.println("Error al borrar el archivo original");
+        }
+    }
+
+
+    public static void writeFile(File sourceFile,File targetFile) throws IOException {
+
+        // Gravar por flujo de bytes en bloques de 8KB
+        try(FileOutputStream output = new FileOutputStream(targetFile);
+            FileInputStream input = new FileInputStream(sourceFile)){
+
+            byte[] buffer = new byte[8192];
+            int bytePointer;
+            while ( (bytePointer = input.read(buffer) ) != -1) {
+                output.write(buffer, 0, bytePointer);
+            }
+        }catch (Exception e){
+            System.out.printf("Error al escribir el archivo con ruta: %s%n",targetFile.getAbsolutePath());
+        }
+    }
+
+    public static void createNestedDirectories(File targetDir){
+        if (!targetDir.exists()) {
+            boolean creationResult = targetDir.mkdirs();
+
+            if (!creationResult){
+                System.out.printf("Error al crear directorios con ruta: %s",targetDir.getAbsolutePath());
+            }
+        }
     }
 
 }
