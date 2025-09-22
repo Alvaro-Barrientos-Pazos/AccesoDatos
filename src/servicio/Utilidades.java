@@ -3,6 +3,7 @@ package servicio;
 import excepciones.*;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -59,6 +60,10 @@ public class Utilidades {
         if (!file.isFile()) {
             throw new NoEsArchivoException();
         }
+    }
+
+    public static void mostrarInfo(Path path){
+        mostrarInfo(path.toFile(),"-");
     }
 
 

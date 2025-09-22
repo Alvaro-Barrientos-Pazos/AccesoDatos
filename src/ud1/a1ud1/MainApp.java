@@ -1,6 +1,9 @@
+package ud1.a1ud1;
+
 import excepciones.*;
 import servicio.Filtro;
 import servicio.OperacionesIO;
+import servicio.OperacionesNIO;
 
 import java.io.IOException;
 
@@ -13,7 +16,7 @@ public class MainApp {
         //String rutaBase = "D:\\abarrpazo\\AccesoDatos\\Directorios";
         String rutaBase = "G:\\DAM\\DAM2\\AccesoDatos\\Directorios";
 
-        //ejercicios_1_to_5(ruta);
+        //ejercicios_1_to_5(rutaBase);
 
 
         // Ejercicio 6
@@ -23,13 +26,17 @@ public class MainApp {
         //String rutaDestino = rutaBase+"\\Fotos\\Arañas\\Caseras";             // Sin especificar nombre
         String rutaDestino = rutaBase+"\\Fotos\\aranna_3.jpg";                  // Cambiando nombre
         //String rutaDestino = rutaBase+"\\Fotos\\aranna_casera_3.jpag";       // Excepcion de extension
-        OperacionesIO.copiarArchivo(RUTA_ORIGEN, rutaDestino );      // DEBUG: Comentar cuando se vaya a usar con el copiar del ejercicio 7
+        //OperacionesIO.copiarArchivo(RUTA_ORIGEN, rutaDestino );      // DEBUG: Comentar cuando se vaya a usar con el copiar del ejercicio 7
 
 
         // Ejercicio 7
         rutaDestino = rutaBase+"\\Fotos\\Arañas\\Caseras\\Mover";
-        OperacionesIO.moverArchivo(RUTA_ORIGEN, rutaDestino );
+        //OperacionesIO.moverArchivo(RUTA_ORIGEN, rutaDestino );
         //OperacionesIO.copiarArchivo(rutaDestino+"\\"+NOMBRE_ARCHIVO, RUTA_ORIGEN );  // DEBUG: copiar el archivo recien creado en su posicion original tras borrarlo
+
+
+        OperacionesIO.copiarDirectorio(rutaBase,"G:/");
+
     }
 
 

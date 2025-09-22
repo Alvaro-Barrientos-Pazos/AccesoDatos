@@ -225,6 +225,7 @@ public class OperacionesIO {
         }
     }
 
+
     public static void createNestedDirectories(File targetDir){
         if (!targetDir.exists()) {
             boolean creationResult = targetDir.mkdirs();
@@ -232,6 +233,94 @@ public class OperacionesIO {
             if (!creationResult){
                 System.out.printf("Error al crear directorios con ruta: %s",targetDir.getAbsolutePath());
             }
+        }
+    }
+
+
+    public static void copiarDirectorio(String origen, String destino) throws DirectorioNoExisteException, NoEsDirectorioException, ArchivoNoExisteException, IOException, NoEsArchivoException, FormatChangedNotSupportedException {
+
+        File sourceFile = new File(origen);
+        Utilidades.validarDirectorio(sourceFile);
+
+        File targetFile = new File(destino);
+
+        String[] disk = destino.split("(:/|:\\\\)", 2);
+
+        if (!disk[0].equalsIgnoreCase("D") && !disk[0].equalsIgnoreCase("C")){
+            System.out.println("Solo se aceptan rutas de la unidad D: y C:");
+            return;
+        }
+
+        createNestedDirectories(targetFile);
+
+
+        File[] files = sourceFile.listFiles();
+
+        if  (files == null) {
+            System.out.println("Error al leer el directorio original "+origen);
+            return;
+        }
+
+        String newDirPath;
+
+        for (File f : files){
+            if  (f.isDirectory()){
+                newDirPath = new File(destino,f.getName()).getPath();
+                copiarDirectorio(f.getAbsolutePath(),newDirPath);
+            }
+            else{
+                copiarArchivo(f.getAbsolutePath(),targetFile.getAbsolutePath());
+            }
+        }
+    }
+
+
+    public static void borrar(String ruta) throws IOException {
+
+        File sourceFile = new File(ruta);
+
+        if (!sourceFile.exists()){
+            throw new IOException("No se encontro ni archivo ni directorio con la ruta: "+ruta);
+        }
+
+        if (sourceFile.isDirectory()){
+            borrarRecursivo(sourceFile);
+        }
+        else{
+            borrarArchivo(sourceFile);
+        }
+
+    }
+
+    public static void borrarRecursivo(File source){
+
+        File[] files = source.listFiles();
+
+        if (files == null){
+            System.out.println("No se puede leer el contenido del directorio: "+source.getAbsolutePath());
+            return;
+        }
+
+        for (File f : files){
+            if (f.isDirectory()){
+                borrarRecursivo(f);
+            }
+            else{
+                borrarArchivo(f);
+            }
+        }
+        borrarDirectorio(source);
+    }
+
+    public static void borrarArchivo(File file){
+        if (!file.delete()){
+            System.out.println("Error al borrar el archivo: "+file.getAbsolutePath());
+        }
+    }
+
+    public static void borrarDirectorio(File dir){
+        if (!dir.delete()){
+            System.out.println("Error al borrar el directorio: "+dir.getAbsolutePath());
         }
     }
 
