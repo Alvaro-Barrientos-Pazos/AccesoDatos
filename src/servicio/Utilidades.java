@@ -4,6 +4,7 @@ import excepciones.*;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -130,6 +131,27 @@ public class Utilidades {
         }
 
         return targetPath;
+    }
+
+    public static void createNestedDirectories(File targetDir){
+        if (!targetDir.exists()) {
+            boolean creationResult = targetDir.mkdirs();
+
+            if (!creationResult){
+                System.out.printf("Error al crear directorios con ruta: %s",targetDir.getAbsolutePath());
+            }
+        }
+    }
+
+    //TODO: Maybe this can be reemplaced by Path.getRoot()
+    public static boolean validatePathDrive(String path){
+        String[] disk = path.split("(:/|:\\\\)", 2);
+
+        if (!disk[0].equalsIgnoreCase("D") && !disk[0].equalsIgnoreCase("C")){
+            System.out.println("Solo se aceptan rutas de la unidad D: y C:");
+            return false;
+        }
+        return true;
     }
 
 }

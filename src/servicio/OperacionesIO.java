@@ -180,8 +180,20 @@ public class OperacionesIO {
         String targetPath = Utilidades.resolvePath(sourceFile,destino);
         File targetFile = new File(targetPath);
 
-        createNestedDirectories( targetFile.getParentFile() );
-        writeFile(sourceFile,targetFile);
+        Utilidades.createNestedDirectories( targetFile.getParentFile() );
+
+        // Gravar por flujo de bytes en bloques de 8KB
+        try(FileOutputStream output = new FileOutputStream(targetFile);
+            FileInputStream input = new FileInputStream(sourceFile)){
+
+            byte[] buffer = new byte[8192];
+            int bytePointer;
+            while ( (bytePointer = input.read(buffer) ) != -1) {
+                output.write(buffer, 0, bytePointer);
+            }
+        }catch (Exception e){
+            System.out.printf("Error al escribir el archivo con ruta: %s%n",targetFile.getAbsolutePath());
+        }
 
         return sourceFile;
     }
@@ -209,69 +221,36 @@ public class OperacionesIO {
     }
 
 
-    public static void writeFile(File sourceFile,File targetFile) throws IOException {
-
-        // Gravar por flujo de bytes en bloques de 8KB
-        try(FileOutputStream output = new FileOutputStream(targetFile);
-            FileInputStream input = new FileInputStream(sourceFile)){
-
-            byte[] buffer = new byte[8192];
-            int bytePointer;
-            while ( (bytePointer = input.read(buffer) ) != -1) {
-                output.write(buffer, 0, bytePointer);
-            }
-        }catch (Exception e){
-            System.out.printf("Error al escribir el archivo con ruta: %s%n",targetFile.getAbsolutePath());
-        }
-    }
-
-
-    public static void createNestedDirectories(File targetDir){
-        if (!targetDir.exists()) {
-            boolean creationResult = targetDir.mkdirs();
-
-            if (!creationResult){
-                System.out.printf("Error al crear directorios con ruta: %s",targetDir.getAbsolutePath());
-            }
-        }
-    }
-
-
     public static void copiarDirectorio(String origen, String destino) throws DirectorioNoExisteException, NoEsDirectorioException, ArchivoNoExisteException, IOException, NoEsArchivoException, FormatChangedNotSupportedException {
 
         File sourceFile = new File(origen);
         Utilidades.validarDirectorio(sourceFile);
-
         File targetFile = new File(destino);
 
-        String[] disk = destino.split("(:/|:\\\\)", 2);
+        if (Utilidades.validatePathDrive(destino)){
 
-        if (!disk[0].equalsIgnoreCase("D") && !disk[0].equalsIgnoreCase("C")){
-            System.out.println("Solo se aceptan rutas de la unidad D: y C:");
-            return;
-        }
+            Utilidades.createNestedDirectories(targetFile);
 
-        createNestedDirectories(targetFile);
+            File[] files = sourceFile.listFiles();
 
-
-        File[] files = sourceFile.listFiles();
-
-        if  (files == null) {
-            System.out.println("Error al leer el directorio original "+origen);
-            return;
-        }
-
-        String newDirPath;
-
-        for (File f : files){
-            if  (f.isDirectory()){
-                newDirPath = new File(destino,f.getName()).getPath();
-                copiarDirectorio(f.getAbsolutePath(),newDirPath);
+            if  (files == null) {
+                System.out.println("Error al leer el directorio original "+origen);
+                return;
             }
-            else{
-                copiarArchivo(f.getAbsolutePath(),targetFile.getAbsolutePath());
+
+            String newDirPath;
+
+            for (File f : files){
+                if  (f.isDirectory()){
+                    newDirPath = new File(destino,f.getName()).getPath();
+                    copiarDirectorio(f.getAbsolutePath(),newDirPath);
+                }
+                else{
+                    copiarArchivo(f.getAbsolutePath(),targetFile.getAbsolutePath());
+                }
             }
         }
+
     }
 
 
